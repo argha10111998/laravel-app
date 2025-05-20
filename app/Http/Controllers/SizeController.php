@@ -15,7 +15,7 @@ class SizeController extends Controller
         $request->validate([
             'size' => 'required|string|max:255',
         ]);
-// dd($request->input());
+        // dd($request->input());
         // Check if the size already exists
         $size = Size::where('size', $request->input('size'))->first();
 
