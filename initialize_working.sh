@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #Updating and Installing Composer
-composer update  && composer install
+composer install
 
 #Initialising Migration 
 php artisan migrate --force
