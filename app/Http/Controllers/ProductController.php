@@ -5,8 +5,8 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Size;
-use App\Models\ProductSize;
-use App\Models\ProductSizeQuantity;
+// use App\Models\ProductSize;
+use App\Models\ProductSizeTemplate;
 use App\Models\Color;
 use App\Models\ProductColor;
 use Illuminate\Http\Request;
@@ -55,8 +55,8 @@ class ProductController extends Controller
             'SKU' => 'required|string|max:50|unique:product',
             'stock_status' => 'required|in:instock,outofstock',
             'quantity' => 'required|integer|min:1',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'images' => 'required',
+            'image' => 'image|mimes:jpeg,png,jpg,gif,svg,webp',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048', // Validate each image
             'category_id' => 'required|exists:category,id',
             'brand_id' => 'nullable|exists:brand,id',
             'color_id' => 'nullable|exists:color,id',
@@ -72,21 +72,32 @@ class ProductController extends Controller
         }
     
         // Handle multiple images upload
+        $imagePaths = [];
         if ($request->hasFile('images')) {
-            $imagePaths = [];
             foreach ($request->file('images') as $image) {
-                $imageName = time() . '_' . $image->getClientOriginalName();
-                $image->move(public_path('images/product/'), $imageName);
-                $imagePaths[] = $imageName;
+                // Skip files with upload errors
+                if ($image->isValid()) {
+                    $imageName = time() . '_' . $image->getClientOriginalName();
+                    $image->move(public_path('images/product/'), $imageName);
+                    $imagePaths[] = $imageName;
+                }
             }
-            $validatedData['images'] = json_encode($imagePaths); // Save as JSON-encoded string
+            if (!empty($imagePaths)) {
+                $validatedData['images'] = json_encode($imagePaths); // Save as JSON-encoded string
+            } else {
+                $validatedData['images'] = null; // Set to null if no valid images
+            }
+        } else {
+            $validatedData['images'] = null; // Set to null if no images uploaded
         }
 
         // Save the form data to the database
-        $product_id = Product::create($validatedData);
+        // dd($validatedData);
+        $product = Product::create($validatedData);
+        
         $sizes = $request->input('size');
-        echo '<pre>';
-        print_r($sizes);
+        // echo '<pre>';
+        // print_r($sizes);
         if(!empty($sizes)){
 
             $errors = [];
@@ -114,19 +125,21 @@ class ProductController extends Controller
             }
             // Extract size name and price
             foreach ($sizes as $size) {
-                $product_size = ProductSize::create([
-                    'product_id' => $product_id->id,
-                    'size_id' => $size['size'],
-                    'price' => $size['price'],
-                ]);
-                echo $product_id->id;
-                echo $size['size'];
-                echo $size['quan'];
-                $product_size_quantity = ProductSizeQuantity::create([
-                    'product_id' => $product_id->id,
+                // $product_size = ProductSize::create([
+                //     'product_id' => $product_id->id,
+                //     'size_id' => $size['size'],
+                //     'price' => $size['price'],
+                // ]);
+                // echo $product_id->id;
+                // echo $size['size'];
+                // echo $size['quan'];
+                $product_size_quantity = ProductSizeTemplate::create([
+                    'product_id' => $product->id,
                     'size_id' => $size['size'],
                     'quantity' => $size['quan'],
                 ]);
+
+                // dd($product_size_quantity);
             }
 
         
@@ -134,7 +147,7 @@ class ProductController extends Controller
         $color = $request->input('color_id');
         if($color!=null){
             ProductColor::create([
-                'product_id' => $product_id->id,
+                'product_id' => $product->id, // Updated to use $product->id instead of $product_id->id
                 'color_id' => $color,
             ]);
         }
@@ -171,7 +184,7 @@ class ProductController extends Controller
                 }
                 // print_r($price_array);
                 
-                $prices = [6578.00, 2698.00, 1569.00, 6587.00];
+                $prices = !empty($price_array) ? $price_array : [0]; // Use price_array if not empty, otherwise use [0]
 
                 // Determine the minimum and maximum prices
                 $minPrice = min($prices);
@@ -212,12 +225,13 @@ class ProductController extends Controller
         // die();
 
         $category = Category::where('slug', $slug)->first();
+        
         $category_slug = $slug;
         $category_id = $category->id;
         if($category){
         $products = Product::where('category_id', $category->id)
-        ->with(['brand' , 'color' , 'sizes' ])
-        ->get();
+            ->with(['brand' , 'color' , 'sizes' ])
+            ->get();
         $sizes = $products->pluck('sizes')->flatten()->unique('id');
 
         $brands = $products->pluck('brand')->unique('id');
@@ -237,7 +251,7 @@ class ProductController extends Controller
                 }
                 // print_r($price_array);
                 
-                $prices = [6578.00, 2698.00, 1569.00, 6587.00];
+                $prices = !empty($price_array) ? $price_array : [0]; // Use price_array if not empty, otherwise use [0]
 
                 // Determine the minimum and maximum prices
                 $minPrice = min($prices);
@@ -262,14 +276,6 @@ class ProductController extends Controller
                     }
                 }
             }
-
-
-
-
-
-
-
-
 
 
         $query = Product::query();
@@ -325,14 +331,13 @@ class ProductController extends Controller
     
         // Get the filtered products
         $products = $query->get();
-        echo "<pre>";
-        print_r($products);
-        dd($request->input());
+        // echo "<pre>";
+        // print_r($products);
+        // dd($request->input());
        
 
         // Return the filtered products (adjust as needed for your application)
         // return response()->json($products);
-        return view('category-products',compact('category_id','category_slug' ,'sizes', 'brands','colors' , 'priceLimits' ,'products'));
-            
+        return view('category-products', compact('category_id', 'category_slug', 'sizes', 'brands', 'colors', 'priceLimits', 'products'));            
     }
 }

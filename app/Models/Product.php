@@ -2,16 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Notifications\Notifiable;
 
 class Product extends Model
 {
-    use HasFactory, Notifiable;
-
-    protected $table = 'product'; // Ensure this matches your database table name
-
+    protected $table = 'product';
+    
     protected $fillable = [
         'name',
         'slug',
@@ -26,12 +22,9 @@ class Product extends Model
         'images',
         'category_id',
         'brand_id',
-        'color_id',
+        'color_id'
     ];
 
-    /**
-     * Get the category that owns the product.
-     */
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -41,20 +34,24 @@ class Product extends Model
     {
         return $this->belongsTo(Brand::class);
     }
-
-    public function sizes()
-    {
-        return $this->belongsToMany(Size::class, 'product_size', 'product_id', 'size_id')->withPivot('price');
-    }
-
+    
     public function color()
     {
         return $this->belongsTo(Color::class);
     }
-    public function productsize()
+
+    public function sizes()
     {
-        return $this->hasMany(ProductSize::class);
+        // This is likely the problem - this relationship should match your actual table structure
+        // If your pivot table doesn't have a price column, you shouldn't be trying to get it
+        return $this->belongsToMany(Size::class, 'product_size', 'product_id', 'size_id')
+                    ->withPivot('stock', 'sku') // Update these to match your actual columns
+                    ->withTimestamps();
     }
 
-
+    public function productsize()
+    {
+        // This relationship definition also needs to be checked
+        return $this->hasMany(ProductSizeTemplate::class);
+    }
 }

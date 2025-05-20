@@ -53,3 +53,7 @@ $response = $kernel->handle(
 )->send();
 
 $kernel->terminate($request, $response);
+
+
+ini_set('upload_max_filesize', '20M');
+ini_set('post_max_size', '25M');
