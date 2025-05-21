@@ -12,18 +12,10 @@ class Size extends Model
     protected $table = 'size';
     protected $fillable = ['size'];
 
-    // public function products()
-    // {
-    //     return $this->belongsToMany(Product::class)->withPivot('price')->withTimestamps();
-    // }
-    // public function products()
-    // {
-    //     return $this->belongsToMany(Product::class);
-    // }
-
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'product_size', 'size_id', 'product_id')->withPivot('price');
+        return $this->belongsToMany(Product::class, 'product_size', 'size_id', 'product_id')
+                    ->withPivot('stock', 'sku')
+                    ->withTimestamps();
     }
-
 }

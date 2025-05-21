@@ -40,18 +40,11 @@ class Product extends Model
         return $this->belongsTo(Color::class);
     }
 
-    public function sizes()
+    public function size()
     {
-        // This is likely the problem - this relationship should match your actual table structure
-        // If your pivot table doesn't have a price column, you shouldn't be trying to get it
+        // Use the proper pivot table name and columns based on your migration
         return $this->belongsToMany(Size::class, 'product_size', 'product_id', 'size_id')
-                    ->withPivot('stock', 'sku') // Update these to match your actual columns
+                    ->withPivot('stock', 'sku')
                     ->withTimestamps();
-    }
-
-    public function productsize()
-    {
-        // This relationship definition also needs to be checked
-        return $this->hasMany(ProductSizeTemplate::class);
     }
 }

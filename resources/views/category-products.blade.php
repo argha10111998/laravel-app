@@ -96,24 +96,23 @@
                                     @php
                                     $selectedSize = request()->input('size',[]);
                                     @endphp
-                                    <div class="card">
-                                        <div class="card-heading">
-                                            <a data-toggle="collapse" data-target="#collapseFour">Size</a>
-                                        </div>
-                                        <div id="collapseFour" class="collapse show" data-parent="#accordionExample">
-                                            <div class="card-body">
-                                                <div class="shop__sidebar__size shop_sidebar_shop_size">
-                                                    @foreach($sizes as $size)
-                                                        <label for="" @if(in_array($size->id,$selectedSize)) class="active" @endif>
-                                                            <input type="checkbox" name="size[]" value="{{ $size->id }}"  @if(in_array($size->id,$selectedSize)) checked @endif>
-                                                            {{ $size->size }}
-                                                        </label>
-                                                    @endforeach
-                                                   
+                                        <div class="card">
+                                            <div class="card-heading">
+                                                <a data-toggle="collapse" data-target="#collapseFour">Size</a>
+                                            </div>
+                                            <div id="collapseFour" class="collapse show" data-parent="#accordionExample">
+                                                <div class="card-body">
+                                                    <div class="shop__sidebar__size shop_sidebar_shop_size">
+                                                        @foreach($sizes as $size)
+                                                            <label for="" @if(in_array($size->id,$selectedSize)) class="active" @endif>
+                                                                <input type="checkbox" name="size[]" value="{{ $size->id }}"  @if(in_array($size->id,$selectedSize)) checked @endif>
+                                                                {{ $size->size }}
+                                                            </label>
+                                                        @endforeach
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
                                     @endif
 
                                     @if($colors->isNotEmpty())

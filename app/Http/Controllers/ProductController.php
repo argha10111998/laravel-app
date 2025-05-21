@@ -221,123 +221,103 @@ class ProductController extends Controller
             echo "wrong slug!";
     }
 
-    public function filterProducts(Request $request , $slug){
-        // die();
-
+    public function filterProducts(Request $request, $slug){
         $category = Category::where('slug', $slug)->first();
         
         $category_slug = $slug;
         $category_id = $category->id;
         if($category){
-        $products = Product::where('category_id', $category->id)
-            ->with(['brand' , 'color' , 'sizes' ])
-            ->get();
-        $sizes = $products->pluck('sizes')->flatten()->unique('id');
-
-        $brands = $products->pluck('brand')->unique('id');
-        // $colors = $products->flatMap->color->unique('id');
-        $colors = $products->pluck('color')->unique('id');
-        //dd($brands , $colors ,$sizes);
-        $productsizewithprice = $products->pluck('productsize');
-
-        $productsizewithprice = $productsizewithprice->flatMap(function ($each_product_size) {
-                    return $each_product_size;
+            $query = Product::where('category_id', $category->id)
+                ->with(['brand', 'color', 'size']);
+                
+            // Apply filters based on request parameters
+            
+            // Filter by size
+            if ($request->has('size')) {
+                $query->whereHas('size', function ($q) use ($request) {
+                    $q->whereIn('size_id', $request->input('size'));
                 });
-                // echo "<pre>";
-                $price_array = [];
-                foreach ($productsizewithprice as $productSize) {
-                    //print_r($productSize->price); // Assuming 'price' is an attribute of the ProductSize model
-                    array_push($price_array,$productSize->price);
-                }
-                // print_r($price_array);
-                
-                $prices = !empty($price_array) ? $price_array : [0]; // Use price_array if not empty, otherwise use [0]
+            }
 
-                // Determine the minimum and maximum prices
-                $minPrice = min($prices);
-                $maxPrice = max($prices);
+            // Filter by brand
+            if ($request->has('brand')) {
+                $query->whereIn('brand_id', $request->input('brand'));
+            }
+
+            // Filter by color
+            if ($request->has('color')) {
+                $query->whereIn('color_id', $request->input('color'));
+            }
+            
+            // Filter by price range
+            if ($request->has('price')) {
+                $price_array = ($request->input('price'));
+                $store_prices = array();
+                foreach($price_array as $each_range){
+                    $priceRange = explode('-', $each_range);
+                    array_push($store_prices, $priceRange[0]);
+                    array_push($store_prices, $priceRange[1]);
+                }
+                $minPrice = min($store_prices);
+                $maxPrice = max($store_prices);
                 
-                // Define the range interval (e.g., 1000)
-                $interval = 1000;
-                
-                // Initialize an array to store the price limits
-                $priceLimits = [];
-                $closest_upper_limit = (ceil($maxPrice  / $interval) * $interval);
-                // Generate the price ranges
-                for ($i = floor($minPrice / $interval) * $interval; $i <= ceil($maxPrice / $interval) * $interval; $i += $interval) {
-                    $lowerLimit = $i;
-                    $upperLimit = $i + $interval;
-                 if($upperLimit<=$closest_upper_limit){
-                    // Store the limits in the desired structure
+                // Note: This needs to be adjusted based on where prices are stored
+                $query->whereHas('size', function ($q) use ($minPrice, $maxPrice) {
+                    $q->whereBetween('price', [$minPrice, $maxPrice]);
+                });
+            }
+            
+            // Get the filtered products
+            $products = $query->get();
+            
+            // Now let's get all the necessary data for the filters
+            $allProducts = Product::where('category_id', $category->id)->with(['brand', 'color', 'size'])->get();
+            $brands = $allProducts->pluck('brand')->unique('id')->filter();
+            $colors = $allProducts->pluck('color')->unique('id')->filter();
+            $sizes = $allProducts->pluck('size')->flatten()->unique('id');
+            
+            // Calculate price limits
+            $productsWithSizes = $allProducts->map(function($product) {
+                return $product->size;
+            })->flatten();
+            
+            $price_array = [];
+            foreach ($productsWithSizes as $productSize) {
+                if (isset($productSize->pivot->price)) {
+                    array_push($price_array, $productSize->pivot->price);
+                }
+            }
+            
+            $prices = !empty($price_array) ? $price_array : [0];
+            $minPrice = min($prices);
+            $maxPrice = max($prices);
+            
+            $interval = 1000;
+            $priceLimits = [];
+            $closest_upper_limit = (ceil($maxPrice / $interval) * $interval);
+            
+            for ($i = floor($minPrice / $interval) * $interval; $i <= ceil($maxPrice / $interval) * $interval; $i += $interval) {
+                $lowerLimit = $i;
+                $upperLimit = $i + $interval;
+                if($upperLimit <= $closest_upper_limit){
                     $priceLimits[] = [
                         'upper_limit' => $upperLimit,
                         'lower_limit' => $lowerLimit
                     ];
-                    }
                 }
             }
-
-
-        $query = Product::query();
-
-        // Apply filters based on request parameters
-    
-        // Filter by category
-        if($category_id){
-            $query->where('category_id', $category_id);
-        }
-
-        if ($request->has('category_id')) {
-            $query->where('category_id', $request->input('category_id'));
-        }
-    
-        // Filter by size
-        if ($request->has('size')) {
-            $query->whereHas('sizes', function ($q) use ($request) {
-                $q->whereIn('size_id', $request->input('size'));
-            });
-        }
-
-         // Filter by size
-         if ($request->has('brand')) {
-            $query->whereIn('brand_id', $request->input('brand'));
-        }
-
-
-        // Filter by size
-        if ($request->has('color')) {
-        $query->whereIn('color_id', $request->input('color'));
+            
+            return view('category-products', compact(
+                'category_id', 
+                'category_slug', 
+                'sizes', 
+                'brands', 
+                'colors', 
+                'priceLimits', 
+                'products'
+            ));
         }
         
-        $store_prices = array();
-        // Filter by price range
-        if ($request->has('price')) {
-            $price_array = ($request->input('price'));
-            foreach( $price_array  as $each_range){
-                $priceRange = explode('-', $each_range);
-                // print_r(  $priceRange );
-                array_push( $store_prices,$priceRange[0] );
-                array_push( $store_prices,$priceRange[1] );
-            }
-            // print_r($store_prices);
-              $minPrice = min($store_prices);
-              $maxPrice =  max($store_prices);
-            // die();
-            // $query->whereBetween('price', [$request->input('min_price'), $request->input('max_price')]);
-            $query->whereHas('productsize', function ($q) use ($request,$minPrice,$maxPrice ) {
-                $q->whereBetween('price', [$minPrice,$maxPrice ]);
-            });
-        }
-    
-        // Get the filtered products
-        $products = $query->get();
-        // echo "<pre>";
-        // print_r($products);
-        // dd($request->input());
-       
-
-        // Return the filtered products (adjust as needed for your application)
-        // return response()->json($products);
-        return view('category-products', compact('category_id', 'category_slug', 'sizes', 'brands', 'colors', 'priceLimits', 'products'));            
+        return redirect()->back()->with('error', 'Category not found!');
     }
 }
