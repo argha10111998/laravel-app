@@ -5,12 +5,12 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Size;
-// use App\Models\ProductSize;
 use App\Models\ProductSizeTemplate;
 use App\Models\Color;
 use App\Models\ProductColor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -43,7 +43,7 @@ class ProductController extends Controller
         // Size::create();
         // Validate the form data
         // dd($request->input('size'),$request->input('price'));
-        // dd($request->input('size'),$request->input('price'),$request->input('color'));
+        // dd($request->input('size'));
         
         $validatedData = $request->validate([
             'name' => 'required|string|max:255|unique:product',
@@ -60,8 +60,10 @@ class ProductController extends Controller
             'category_id' => 'required|exists:category,id',
             'brand_id' => 'nullable|exists:brand,id',
             'color_id' => 'nullable|exists:color,id',
-            // 'sizes' => 'required|array',
-            // 'sizes.*' => 'exists:sizes,id', // validate each size
+            'size' => 'required|array',
+            'size.*.size' => 'required|exists:size,id',
+            'size.*.price' => 'required|numeric',
+            'size.*.quan' => 'required|numeric'
         ]);
 
         // Handle image upload
@@ -125,23 +127,24 @@ class ProductController extends Controller
             }
             // Extract size name and price
             foreach ($sizes as $size) {
-                // $product_size = ProductSize::create([
-                //     'product_id' => $product_id->id,
-                //     'size_id' => $size['size'],
-                //     'price' => $size['price'],
-                // ]);
-                // echo $product_id->id;
-                // echo $size['size'];
-                // echo $size['quan'];
-                $product_size_quantity = ProductSizeTemplate::create([
-                    'product_id' => $product->id,
-                    'size_id' => $size['size'],
-                    'quantity' => $size['quan'],
-                ]);
-
-                // dd($product_size_quantity);
-            }
-
+            // This creates the pivot table entry
+            DB::table('product_size')->insert([
+                'product_id' => $product->id,
+                'size_id' => $size['size'],
+                'price' => $size['price'],
+                'stock' => $size['quan'],  // Assuming 'quan' is stock
+                'sku' => 'SKU-' . $product->id . '-' . $size['size'] . '-' . substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 2),  // Creating a unique SKU
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            
+            // If you also need to update the ProductSizeTemplate table:
+            ProductSizeTemplate::create([
+                'product_id' => $product->id,
+                'size_id' => $size['size'],
+                'quantity' => $size['quan'],
+            ]);
+        }
         
         }
         $color = $request->input('color_id');
@@ -261,10 +264,14 @@ class ProductController extends Controller
                 $minPrice = min($store_prices);
                 $maxPrice = max($store_prices);
                 
-                // Note: This needs to be adjusted based on where prices are stored
-                $query->whereHas('size', function ($q) use ($minPrice, $maxPrice) {
-                    $q->whereBetween('price', [$minPrice, $maxPrice]);
+                // Filter by price in the pivot table
+                $query->whereExists(function ($subQuery) use ($minPrice, $maxPrice) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('product_size')
+                        ->whereColumn('product_size.product_id', 'product.id')
+                        ->whereBetween('product_size.price', [$minPrice, $maxPrice]);
                 });
+
             }
             
             // Get the filtered products

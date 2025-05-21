@@ -44,7 +44,7 @@ class Product extends Model
     {
         // Use the proper pivot table name and columns based on your migration
         return $this->belongsToMany(Size::class, 'product_size', 'product_id', 'size_id')
-                    ->withPivot('stock', 'sku')
+                    ->withPivot('stock', 'sku', 'price')
                     ->withTimestamps();
     }
 }

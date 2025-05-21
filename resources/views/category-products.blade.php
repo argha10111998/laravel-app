@@ -66,7 +66,6 @@
                                     @if($priceLimits)
                                     @php
                                         $selectedPrice= request()->input('price', []);
-                                      
                                     @endphp
                                     <div class="card">
                                         <div class="card-heading">
@@ -121,15 +120,15 @@
                                             <a data-toggle="collapse" data-target="#collapseFive">Colors</a>
                                         </div>
                                         <div id="collapseFive" class="collapse show" data-parent="#accordionExample">
-                                        <div class="card-body">
-        <div class="shop__sidebar__color product__details__option__color">
-            @foreach($colors as $color)
-                <label for="color" style="background-color: {{ $color->color_code }};" class="shop_color">
-                    <input type="checkbox"  name="color[]" value="{{ $color->id }}">
-                </label>
-            @endforeach
-        </div>
-    </div>
+                                            <div class="card-body">
+                                                <div class="shop__sidebar__color product__details__option__color">
+                                                    @foreach($colors as $color)
+                                                        <label for="color" style="background-color: {{ $color->color_code }};" class="shop_color">
+                                                            <input type="checkbox"  name="color[]" value="{{ $color->id }}">
+                                                        </label>
+                                                    @endforeach
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     @endif
@@ -160,6 +159,9 @@
                         </div>
                     </div>
                     <div class="row">
+                    {{-- @php
+                        dd($products)
+                    @endphp --}}
                     @if($products->isNotEmpty()) 
                         @foreach($products as $each_product)
                             <div class="col-lg-4 col-md-6 col-sm-6">
