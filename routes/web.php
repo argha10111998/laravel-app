@@ -84,6 +84,7 @@ Route::middleware(['ensure.admin.is.valid'])->group(function () {
     Route::post('/admin/brand/submit', [BrandController::class, 'submitBrandForm'])->name('brand.form.submit');
 
     Route::get('/admin/product-form', [ProductController::class, 'viewProductForm'])->name('product.create');
+    
     Route::post('/admin/product/submit', [ProductController::class, 'storeProduct'])->name('product.submit');
 });
 

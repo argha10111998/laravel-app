@@ -160,99 +160,97 @@ class ProductController extends Controller
     }
 
 
-    public function findAllProducts(Request $request , $slug){
+    public function findAllProducts(Request $request, $slug){
         $category = Category::where('slug', $slug)->first();
         $category_slug = $slug;
         $category_id = $category->id;
+        
         if($category){
-        $products = Product::where('category_id', $category->id)
-        ->with(['brand' , 'color' , 'sizes' ])
-        ->get();
-        $sizes = $products->pluck('sizes')->flatten()->unique('id');
+            $products = Product::where('category_id', $category->id)
+                ->with(['brand', 'color', 'size' => function($query) {
+                    $query->withPivot('price', 'stock', 'sku');
+                }])
+                ->get();
 
-        $brands = $products->pluck('brand')->unique('id');
-        // $colors = $products->flatMap->color->unique('id');
-        $colors = $products->pluck('color')->unique('id');
-        //dd($brands , $colors ,$sizes);
-        $productsizewithprice = $products->pluck('productsize');
-
-        $productsizewithprice = $productsizewithprice->flatMap(function ($each_product_size) {
-                    return $each_product_size;
-                });
-                // echo "<pre>";
-                $price_array = [];
-                foreach ($productsizewithprice as $productSize) {
-                    //print_r($productSize->price); // Assuming 'price' is an attribute of the ProductSize model
-                    array_push($price_array,$productSize->price);
+            // Calculate price ranges for each product
+            $products = $products->map(function($product) {
+                $sizes = $product->size;
+                if($sizes->count() > 0) {
+                    $prices = $sizes->pluck('pivot.price');
+                    $product->min_price = $prices->min();
+                    $product->max_price = $prices->max();
+                } else {
+                    // Fallback to regular/sale price if no sizes
+                    $product->min_price = $product->sale_price ?: $product->regular_price;
+                    $product->max_price = $product->sale_price ?: $product->regular_price;
                 }
-                // print_r($price_array);
-                
-                $prices = !empty($price_array) ? $price_array : [0]; // Use price_array if not empty, otherwise use [0]
+                return $product;
+            });
 
-                // Determine the minimum and maximum prices
-                $minPrice = min($prices);
-                $maxPrice = max($prices);
-                
-                // Define the range interval (e.g., 1000)
-                $interval = 1000;
-                
-                // Initialize an array to store the price limits
-                $priceLimits = [];
-                $closest_upper_limit = (ceil($maxPrice  / $interval) * $interval);
-                // Generate the price ranges
-                for ($i = floor($minPrice / $interval) * $interval; $i <= ceil($maxPrice / $interval) * $interval; $i += $interval) {
-                    $lowerLimit = $i;
-                    $upperLimit = $i + $interval;
-                 if($upperLimit<=$closest_upper_limit){
-                    // Store the limits in the desired structure
+            $sizes = $products->pluck('size')->flatten()->unique('id');
+            $brands = $products->pluck('brand')->unique('id');
+            $colors = $products->pluck('color')->unique('id');
+
+            // Your existing price limits calculation code...
+            $productsizewithprice = $products->pluck('size')->flatten();
+            $price_array = [];
+            foreach ($productsizewithprice as $productSize) {
+                if(isset($productSize->pivot->price)) {
+                    array_push($price_array, $productSize->pivot->price);
+                }
+            }
+            
+            $prices = !empty($price_array) ? $price_array : [0];
+            $minPrice = min($prices);
+            $maxPrice = max($prices);
+            
+            $interval = 1000;
+            $priceLimits = [];
+            $closest_upper_limit = (ceil($maxPrice / $interval) * $interval);
+            
+            for ($i = floor($minPrice / $interval) * $interval; $i <= ceil($maxPrice / $interval) * $interval; $i += $interval) {
+                $lowerLimit = $i;
+                $upperLimit = $i + $interval;
+                if($upperLimit <= $closest_upper_limit){
                     $priceLimits[] = [
                         'upper_limit' => $upperLimit,
                         'lower_limit' => $lowerLimit
                     ];
-                    }
                 }
-                
-                // Print the price limits
-               // print_r($priceLimits);
-
-
-               
-
-        // dd($productsizewithprice);
-        return view('category-products',compact('category_id','category_slug' ,'sizes', 'brands','colors' , 'priceLimits' ,'products'));
             }
-            echo "wrong slug!";
+
+            return view('category-products', compact('category_id','category_slug', 'sizes', 'brands','colors', 'priceLimits', 'products'));
+        }
+        echo "wrong slug!";
     }
 
+    
     public function filterProducts(Request $request, $slug){
         $category = Category::where('slug', $slug)->first();
-        
         $category_slug = $slug;
         $category_id = $category->id;
+        
         if($category){
             $query = Product::where('category_id', $category->id)
-                ->with(['brand', 'color', 'size']);
+                ->with(['brand', 'color', 'size' => function($query) {
+                    $query->withPivot('price', 'stock', 'sku');
+                }]);
                 
-            // Apply filters based on request parameters
-            
-            // Filter by size
+            // Your existing filter logic...
             if ($request->has('size')) {
                 $query->whereHas('size', function ($q) use ($request) {
                     $q->whereIn('size_id', $request->input('size'));
                 });
             }
 
-            // Filter by brand
             if ($request->has('brand')) {
                 $query->whereIn('brand_id', $request->input('brand'));
             }
 
-            // Filter by color
             if ($request->has('color')) {
                 $query->whereIn('color_id', $request->input('color'));
             }
             
-            // Filter by price range
             if ($request->has('price')) {
                 $price_array = ($request->input('price'));
                 $store_prices = array();
@@ -264,26 +262,37 @@ class ProductController extends Controller
                 $minPrice = min($store_prices);
                 $maxPrice = max($store_prices);
                 
-                // Filter by price in the pivot table
                 $query->whereExists(function ($subQuery) use ($minPrice, $maxPrice) {
                     $subQuery->select(DB::raw(1))
                         ->from('product_size')
                         ->whereColumn('product_size.product_id', 'product.id')
                         ->whereBetween('product_size.price', [$minPrice, $maxPrice]);
                 });
-
             }
             
-            // Get the filtered products
             $products = $query->get();
             
-            // Now let's get all the necessary data for the filters
+            // Calculate price ranges for filtered products
+            $products = $products->map(function($product) {
+                $sizes = $product->size;
+                if($sizes->count() > 0) {
+                    $prices = $sizes->pluck('pivot.price');
+                    $product->min_price = $prices->min();
+                    $product->max_price = $prices->max();
+                } else {
+                    $product->min_price = $product->sale_price ?: $product->regular_price;
+                    $product->max_price = $product->sale_price ?: $product->regular_price;
+                }
+                return $product;
+            });
+            
+            // Get all products for filter options
             $allProducts = Product::where('category_id', $category->id)->with(['brand', 'color', 'size'])->get();
             $brands = $allProducts->pluck('brand')->unique('id')->filter();
             $colors = $allProducts->pluck('color')->unique('id')->filter();
             $sizes = $allProducts->pluck('size')->flatten()->unique('id');
             
-            // Calculate price limits
+            // Your existing price limits calculation...
             $productsWithSizes = $allProducts->map(function($product) {
                 return $product->size;
             })->flatten();

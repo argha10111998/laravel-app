@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProductSizeTemplate extends Model
 {
     use HasFactory;
-    protected $table = 'product_size_template';
+    protected $table = 'product_size';
     
     // Add this fillable property with all the fields
     protected $fillable = [

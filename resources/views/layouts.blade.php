@@ -35,19 +35,22 @@
     <div class="offcanvas-menu-wrapper">
         <div class="offcanvas__option">
             <div class="offcanvas__links">
-                <a href="/user/login">Sign in</a>
-                <a href="/user/register">Rgister</a>
                 <a href="#">FAQs</a>
+                
                 @auth('admin')
-
-                <a href="#">{{ Auth::guard('admin')->user()->name }}</a>
-                <a href="{{route('admin.logout')}}">Logout</a>
+                    <a href="#">{{ Auth::guard('admin')->user()->name }}</a>
+                    <a href="{{route('admin.logout')}}">Logout</a>
                 @endauth
-
+                
                 @auth('web')
-                <a href="#"> {{ Auth::user()->name }}</a>
-                <a href="{{route('logout')}}">Logout</a>
+                    <a href="#">{{ Auth::user()->name }}</a>
+                    <a href="{{route('logout')}}">Logout</a>
                 @endauth
+                
+                @guest
+                    <a href="/user/login">Sign in</a>
+                    <a href="/user/register">Register</a>
+                @endguest
             </div>
             <div class="offcanvas__top__hover">
                 <span>Usd <i class="arrow_carrot-down"></i></span>
