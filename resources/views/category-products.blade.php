@@ -173,17 +173,22 @@
                     
                     @if($products->isNotEmpty()) 
                         @foreach($products as $each_product)
+                            <?php //echo "<pre> "; print_r($each_product);echo "</pre>" ?>
                             <div class="col-lg-4 col-md-6 col-sm-6">
                                 <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="{{ asset('images/product/' . $each_product->image) }}">
-                                        <ul class="product__hover">
-                                            <li><a href="#"><img src="{{ asset('img/icon/heart.png')}}" alt=""></a></li>
-                                            <li><a href="#"><img src="{{ asset('img/icon/compare.png')}}" alt=""> <span>Compare</span></a></li>
-                                            <li><a href="#"><img src="{{ asset('img/icon/search.png')}}" alt=""></a></li>
-                                        </ul>
-                                    </div>
+                                    {{-- <a href="/single-product/{{$each_product->id}}}"> --}}
+                                        <div class="product__item__pic set-bg" data-setbg="{{ asset('images/product/' . $each_product->image) }}">
+                                            <ul class="product__hover">
+                                                <li><a href="#"><img src="{{ asset('img/icon/heart.png')}}" alt=""></a></li>
+                                                <li><a href="#"><img src="{{ asset('img/icon/compare.png')}}" alt=""> <span>Compare</span></a></li>
+                                                <li><a href="#"><img src="{{ asset('img/icon/search.png')}}" alt=""></a></li>
+                                            </ul>
+                                        </div>
+                                    {{-- </a> --}}
                                     <div class="product__item__text">
-                                        <h6>{{ $each_product->name }}</h6>
+                                        {{-- <a href="/single-product/{{$each_product->id}}}"> --}}
+                                            <h6>{{ $each_product->name }}</h6>
+                                        {{-- </a> --}}
                                         <a href="#" class="add-cart">+ Add To Cart</a>
                                         <div class="rating">
                                             <i class="fa fa-star-o"></i>
@@ -219,6 +224,9 @@
                                             </label>
                                         </div>
                                     </div>
+                                </div>
+                                <div>
+                                    <a href="/single-product/{{$each_product->id}}}">More<a>
                                 </div>
                             </div>
                         @endforeach

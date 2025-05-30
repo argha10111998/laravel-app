@@ -88,5 +88,8 @@ Route::middleware(['ensure.admin.is.valid'])->group(function () {
     Route::post('/admin/product/submit', [ProductController::class, 'storeProduct'])->name('product.submit');
 });
 
+Route::get('/single-product/{id}',function(){
+    return view('single-product');
+});
 
 
