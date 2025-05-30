@@ -236,7 +236,7 @@ class ProductController extends Controller
                     $query->withPivot('price', 'stock', 'sku');
                 }]);
                 
-            // Your existing filter logic...
+            // dd($request->input('size'));
             if ($request->has('size')) {
                 $query->whereHas('size', function ($q) use ($request) {
                     $q->whereIn('size_id', $request->input('size'));

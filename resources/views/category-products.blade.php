@@ -96,6 +96,7 @@
                                     @if($sizes->isNotEmpty())
                                         @php
                                             $selectedSize = request()->input('size',[]);
+                                            // print_r ($selectedSize);
                                         @endphp
                                         <div class="card">
                                             <div class="card-heading">
@@ -105,8 +106,13 @@
                                                 <div class="card-body">
                                                     <div class="shop__sidebar__size shop_sidebar_shop_size">
                                                         @foreach($sizes as $size)
-                                                            <label for="" @if(in_array($size->id,$selectedSize)) class="active" @endif>
-                                                                <input type="checkbox" name="size[]" value="{{ $size->id }}"  @if(in_array($size->id,$selectedSize)) checked @endif>
+                                                            <label for="size_{{ $size->id }}" @if(in_array($size->id,$selectedSize)) class="active shop_size_label" @else class="shop_size_label" @endif>
+                                                                <input type="checkbox" 
+                                                                    id="size_{{ $size->id }}" 
+                                                                    name="size[]" 
+                                                                    value="{{ $size->id }}" 
+                                                                    @if(in_array($size->id,$selectedSize)) checked @endif
+                                                                    class="shop_size_checkbox">
                                                                 {{ $size->size }}
                                                             </label>
                                                         @endforeach
@@ -117,6 +123,9 @@
                                     @endif
 
                                     @if($colors->isNotEmpty())
+                                       @php
+                                        $selectedColor = request()->input('color',[]);
+                                       @endphp
                                         <div class="card">
                                             <div class="card-heading">
                                                 <a data-toggle="collapse" data-target="#collapseFive">Colors</a>
@@ -125,7 +134,7 @@
                                                 <div class="card-body">
                                                     <div class="shop__sidebar__color product__details__option__color">
                                                         @foreach($colors as $color)
-                                                            <label for="color" style="background-color: {{ $color->color_code }};" class="shop_color">
+                                                            <label for="color" style="background-color: {{ $color->color_code }};" class="shop_color @if(in_array($color->id,$selectedColor)) {{'active'}} @endif" >
                                                                 <input type="checkbox"  name="color[]" value="{{ $color->id }}">
                                                             </label>
                                                         @endforeach
@@ -161,9 +170,6 @@
                         </div>
                     </div>
                     <div class="row">
-                    {{-- @php
-                        dd($products)
-                    @endphp --}}
                     
                     @if($products->isNotEmpty()) 
                         @foreach($products as $each_product)
@@ -252,25 +258,58 @@
     </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
-    $(document).ready(function() {
-        // const colorLabels = document.querySelectorAll('.product__details__option__color label');
+    // Replace your existing JavaScript with this:
+    $(()=> {
+        jQuery(".shop_color").on('click', function(e){
+            e.preventDefault();
+            
+            var checkbox = $(this).find('input[type="checkbox"]');
+            
+            if (checkbox.is(':checked')) {
+                checkbox.prop('checked', false);
+                $(this).removeClass('active');
+            } else {
+                checkbox.prop('checked', true);
+                $(this).addClass('active');
+            }
+        });
         
-        // colorLabels.forEach(label => {
-        //     label.addEventListener('click', function() {
-        //         colorLabels.forEach(lbl => lbl.classList.remove('active')); // Remove 'active' from all labels
-        //         this.classList.add('active'); // Add 'active' to the clicked label
-        //     });
-        // });
-        jQuery(".shop_color").on('click', function(){
-                if ($(this).hasClass('active')) {
-                    alert("Clicked: has active class");
-                    $(this).removeClass('active');
-                } else {
-                    alert("Clicked: don't has active class");
-                    $(this).addClass('active');
-                }
-            });
+        jQuery(".shop_color input[type='checkbox']").on('click', function(e){
+            e.stopPropagation(); 
+            
+            var label = $(this).closest('.shop_color');
+            
+            if ($(this).is(':checked')) {
+                label.addClass('active');
+            } else {
+                label.removeClass('active');
+            }
+        });
 
+
+        // Handle size checkbox clicks
+        jQuery(".shop_size_checkbox").on('change', function(){
+            console.log('Size checkbox clicked!');
+            console.log('Checkbox ID:', $(this).attr('id'));
+            console.log('Checkbox value:', $(this).val());
+            console.log('Is checked:', $(this).is(':checked'));
+            
+            var label = $(this).closest('.shop_size_label');
+            
+            if ($(this).is(':checked')) {
+                label.addClass('active');
+                console.log('Added active class to label');
+            } else {
+                label.removeClass('active');
+                console.log('Removed active class from label');
+            }
+        });
+        
+        // Handle label clicks (in case someone clicks the label text)
+        jQuery(".shop_size_label").on('click', function(e){
+            // Don't prevent default here - let the checkbox handle it naturally
+            console.log('Size label clicked!');
+        });
         
     });
 </script>

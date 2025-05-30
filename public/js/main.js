@@ -117,20 +117,20 @@
     //     }
     // });
     
-    $(".shop_sidebar_shop_size label").on('click', function (event) {
-        //event.preventDefault();  // Prevent default action if any
-        //event.stopPropagation(); // Stop event from bubbling up
-        // console.log("Before:", $(this).attr('class')); // Print the class list before toggling
+    // $(".shop_sidebar_shop_size label").on('click', function (event) {
+    //     //event.preventDefault();  // Prevent default action if any
+    //     //event.stopPropagation(); // Stop event from bubbling up
+    //     // console.log("Before:", $(this).attr('class')); // Print the class list before toggling
         
-        if ($(this).hasClass('active')) {
-            alert("Clicked: has active class");
-            $(this).removeClass('active');
-        } else {
-            $(this).addClass('active');
-        }
+    //     if ($(this).hasClass('active')) {
+    //         alert("Clicked: has active class");
+    //         $(this).removeClass('active');
+    //     } else {
+    //         $(this).addClass('active');
+    //     }
         
         
-    });
+    // });
 
     /*-------------------
 		Scroll

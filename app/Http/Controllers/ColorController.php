@@ -7,9 +7,6 @@ use Illuminate\Http\Request;
 class ColorController extends Controller
 {
     
-    
-    
-    
     public function submitColorForm(Request $request)
     {
         // dd($request->input());
@@ -29,14 +26,12 @@ class ColorController extends Controller
             ],
         ]);
 
-
             Color::create([
                 'color' => $validatedData['color_name'],
                 'slug' => $validatedData['color_slug'],
                 'color_code' => $validatedData['color_code'],
             ]);
         
-
 
         // Redirect to a success page
         return redirect('/admin/color-form')->with('success', 'Color Submitted successfully!');
