@@ -1,6 +1,7 @@
     @extends('layouts')
 
     @section('content')
+     
     <!-- Shop Details Section Begin --> 
     <section class="shop-details">
         <div class="product__details__pic">
@@ -8,8 +9,8 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="product__details__breadcrumb">
-                            <a href="./index.html">Home</a>
-                            <a href="./shop.html">Shop</a>
+                            <a href="{{url('/')}}">Home</a>
+                            <a href="">Shop</a>
                             <span>Product Details</span>
                         </div>
                     </div>
@@ -48,7 +49,7 @@
                         <div class="tab-content">
                             <div class="tab-pane active" id="tabs-1" role="tabpanel">
                                 <div class="product__details__pic__item">
-                                    <img src="img/shop-details/product-big-2.png" alt="">
+                                    <img src="{{ asset('images/product/' . $product->image) }}" alt="{{ $product->name }}">
                                 </div>
                             </div>
                             <div class="tab-pane" id="tabs-2" role="tabpanel">
@@ -77,7 +78,7 @@
                 <div class="row d-flex justify-content-center">
                     <div class="col-lg-8">
                         <div class="product__details__text">
-                            <h4>Hooded thermal anorak</h4>
+                            <h4>{{ $product->name }}</h4>
                             <div class="rating">
                                 <i class="fa fa-star"></i>
                                 <i class="fa fa-star"></i>
@@ -86,28 +87,23 @@
                                 <i class="fa fa-star-o"></i>
                                 <span> - 5 Reviews</span>
                             </div>
-                            <h3>$270.00 <span>70.00</span></h3>
-                            <p>Coat with quilted lining and an adjustable hood. Featuring long sleeves with adjustable
-                                cuff tabs, adjustable asymmetric hem with elastic side tabs and a front zip fastening
-                            with placket.</p>
+                            <h3>${{ number_format($product->sale_price, 2) }} <span>{{ number_format($product->regular_price, 2) }}</span></h3>
+                            <p>{{$product_all[0]->short_description}}</p>
                             <div class="product__details__option">
-                                <div class="product__details__option__size">
-                                    <span>Size:</span>
-                                    <label for="xxl">xxl
-                                        <input type="radio" id="xxl">
-                                    </label>
-                                    <label class="active" for="xl">xl
-                                        <input type="radio" id="xl">
-                                    </label>
-                                    <label for="l">l
-                                        <input type="radio" id="l">
-                                    </label>
-                                    <label for="sm">s
-                                        <input type="radio" id="sm">
-                                    </label>
-                                </div>
+                                {{-- Size Options --}}
+                                @if($product->size && $product->size->count() > 0)
+                                    <div class="product__details__option__size">
+                                        <span>Size:</span>
+                                        @foreach($product->size as $size)
+                                            <label for="size_{{ $size->id }}">
+                                                {{ $size->size }}
+                                                <input type="radio" id="size_{{ $size->id }}" name="product_size" value="{{ $size->id }}" data-price="{{ $size->pivot->price }}" data-stock="{{ $size->pivot->stock }}">
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                @endif
                                 <div class="product__details__option__color">
-                                    <span>Color:</span>
+                                    {{-- <span>Color:</span> --}}
                                     <label class="c-1" for="sp-1">
                                         <input type="radio" id="sp-1">
                                     </label>

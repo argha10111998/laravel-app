@@ -337,14 +337,19 @@ class ProductController extends Controller
 
     public function showProducts($id)
     {
-        // $single_product = Product::with(['size', 'color', 'brand', 'category'])->find($id);
+        $product = Product::with(['size', 'color', 'brand', 'category'])->find($id);
 
-        // if (!$single_product) {
-        //     abort(404); // This will show Laravel's 404 page
-        // }
+        $product_all = Product::all();
 
-        // return response()->json($single_product);
-        return view('404');
+        if (!$product) {
+            return view('404'); // This will show Laravel's 404 page
+        }
+
+        $related_product = Product::where('category_id',$product->category_id)
+                                    ->where('id','!=',$product->id)
+                                    ->take(4)
+                                    ->get();
+        return view('single-product', compact('product','product_all'));
     }
 
 }
