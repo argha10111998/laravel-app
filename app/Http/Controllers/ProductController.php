@@ -29,8 +29,6 @@ class ProductController extends Controller
     }
     
     
-    
-    
     public function storeProduct(Request $request)
     {
         // $product_id=1;
@@ -336,4 +334,17 @@ class ProductController extends Controller
         
         return redirect()->back()->with('error', 'Category not found!');
     }
+
+    public function showProducts($id)
+    {
+        // $single_product = Product::with(['size', 'color', 'brand', 'category'])->find($id);
+
+        // if (!$single_product) {
+        //     abort(404); // This will show Laravel's 404 page
+        // }
+
+        // return response()->json($single_product);
+        return view('404');
+    }
+
 }

@@ -226,7 +226,7 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <a href="/single-product/{{$each_product->id}}}">More<a>
+                                    <a href="/single-product/{{$each_product->id}}">More<a>
                                 </div>
                             </div>
                         @endforeach

@@ -89,7 +89,8 @@ Route::middleware(['ensure.admin.is.valid'])->group(function () {
 });
 
 Route::get('/single-product/{id}',function(){
-    return view('single-product');
+    return view('single-product'); 
 });
 
-
+Route::get('/single-product/{id}',[ProductController::class,'showProducts'])
+->name('product.show');

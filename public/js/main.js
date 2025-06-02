@@ -235,4 +235,14 @@
         });
     });
 
+
+    /*-------------------
+           404 Page
+    --------------------*/
+    $('#returnToHomepage').on('click',function(){
+        location.href = '/'
+        // alert('clicked')
+    })
+
+
 })(jQuery);
