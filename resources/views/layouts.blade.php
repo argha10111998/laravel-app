@@ -35,19 +35,22 @@
     <div class="offcanvas-menu-wrapper">
         <div class="offcanvas__option">
             <div class="offcanvas__links">
-                <a href="/user/login">Sign in</a>
-                <a href="/user/register">Rgister</a>
                 <a href="#">FAQs</a>
+                
                 @auth('admin')
-
-                <a href="#">{{ Auth::guard('admin')->user()->name }}</a>
-                <a href="{{route('admin.logout')}}">Logout</a>
+                    <a href="#">{{ Auth::guard('admin')->user()->name }}</a>
+                    <a href="{{route('admin.logout')}}">Logout</a>
                 @endauth
-
+                
                 @auth('web')
-                <a href="#"> {{ Auth::user()->name }}</a>
-                <a href="{{route('logout')}}">Logout</a>
+                    <a href="#">{{ Auth::user()->name }}</a>
+                    <a href="{{route('logout')}}">Logout</a>
                 @endauth
+                
+                @guest
+                    <a href="/user/login">Sign in</a>
+                    <a href="/user/register">Register</a>
+                @endguest
             </div>
             <div class="offcanvas__top__hover">
                 <span>Usd <i class="arrow_carrot-down"></i></span>
@@ -123,7 +126,7 @@
             <div class="row">
                 <div class="col-lg-3 col-md-3">
                     <div class="header__logo">
-                        <a href="./index.html"><img src="{{ asset('img/logo.png') }}" alt=""></a>
+                        <a href="{{ url('/') }}"><img src="{{ asset('img/logo.png') }}" alt=""></a>
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -165,7 +168,7 @@
     @yield('content')   
 
      <!-- Footer Section Begin -->
-     <footer class="footer">
+    <footer class="footer">
         <div class="container">
             <div class="row">
                 <div class="col-lg-3 col-md-6 col-sm-6">

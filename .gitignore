@@ -16,3 +16,5 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+# Ignore REST API test files (if applicable)
+*.rest

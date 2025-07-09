@@ -16,8 +16,6 @@ class CategoryController extends Controller
     }
     
     
-    
-    
     public function submitCategoryForm(Request $request)
     {
         // dd($request->input());
