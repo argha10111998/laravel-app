@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: laravel-app
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    buildCommand: |
+      echo "Build completed by Docker"
+    startCommand: |
+      php artisan migrate --force
+      php artisan storage:link
+      php artisan serve --host=0.0.0.0 --port=$PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        fromService:
+          type: pserv
+          name: MYSQL_ADDON_HOST
+      - key: DB_PORT
+        fromService:
+          type: pserv
+          name: MYSQL_ADDON_PORT
+      - key: DB_DATABASE
+        fromService:
+          type: pserv
+          name: MYSQL_ADDON_DB
+      - key: DB_USERNAME
+        fromService:
+          type: pserv
+          name: MYSQL_ADDON_USER
+      - key: DB_PASSWORD
+        fromService:
+          type: pserv
+          name: MYSQL_ADDON_PASSWORD
