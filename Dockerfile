@@ -24,7 +24,13 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy existing application directory contents
+# Copy composer files first for better caching
+COPY composer.json composer.lock ./
+
+# Install dependencies without scripts to avoid configuration issues
+RUN composer install --no-dev --optimize-autoloader --no-scripts
+
+# Copy the rest of the application
 COPY . /var/www
 
 # Create necessary directories and set permissions
@@ -38,16 +44,39 @@ RUN mkdir -p storage/app/public \
     && chmod -R 755 /var/www/storage \
     && chmod -R 755 /var/www/bootstrap/cache
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Run composer scripts after copying all files
+RUN composer dump-autoload --optimize
 
-# Cache Laravel configurations
-RUN php artisan config:cache || true
-RUN php artisan route:cache || true
-RUN php artisan view:cache || true
+# Create a startup script
+RUN echo '#!/bin/bash\n\
+# Wait a moment for environment to be ready\n\
+sleep 2\n\
+\n\
+# Run package discovery\n\
+php artisan package:discover --ansi || true\n\
+\n\
+# Generate app key if not exists\n\
+php artisan key:generate --force || true\n\
+\n\
+# Run migrations\n\
+php artisan migrate --force || true\n\
+\n\
+# Create storage link\n\
+php artisan storage:link || true\n\
+\n\
+# Cache configurations (only if no errors)\n\
+php artisan config:cache || true\n\
+php artisan route:cache || true\n\
+php artisan view:cache || true\n\
+\n\
+# Start the server\n\
+php artisan serve --host=0.0.0.0 --port=${PORT:-8000}\n' > /var/www/start.sh
+
+# Make startup script executable
+RUN chmod +x /var/www/start.sh
 
 # Expose port
 EXPOSE 8000
 
-# Start command
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Use the startup script
+CMD ["/var/www/start.sh"]

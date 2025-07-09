@@ -7,9 +7,7 @@ services:
     buildCommand: |
       echo "Build completed by Docker"
     startCommand: |
-      php artisan migrate --force
-      php artisan storage:link
-      php artisan serve --host=0.0.0.0 --port=$PORT
+      /var/www/start.sh
     envVars:
       - key: APP_ENV
         value: production
