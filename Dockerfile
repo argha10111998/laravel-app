@@ -28,7 +28,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY composer.json composer.lock ./
 
 # Install dependencies without scripts to avoid configuration issues
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-plugins
 
 # Copy the rest of the application
 COPY . /var/www
@@ -44,15 +44,15 @@ RUN mkdir -p storage/app/public \
     && chmod -R 755 /var/www/storage \
     && chmod -R 755 /var/www/bootstrap/cache
 
-# Run composer scripts after copying all files
-RUN composer dump-autoload --optimize
+# Run composer dump-autoload without triggering package discovery
+RUN composer dump-autoload --optimize --no-scripts
 
 # Create a startup script
 RUN echo '#!/bin/bash\n\
 # Wait a moment for environment to be ready\n\
 sleep 2\n\
 \n\
-# Run package discovery\n\
+# Run package discovery (this will work now with full app context)\n\
 php artisan package:discover --ansi || true\n\
 \n\
 # Generate app key if not exists\n\
