@@ -27,8 +27,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy composer files first for better caching
 COPY composer.json composer.lock ./
 
-# Install dependencies without scripts to avoid configuration issues
-RUN composer install --no-dev --optimize-autoloader --no-scripts --no-plugins
+# Install dependencies - now that everything is in require, this should work clean
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 # Copy the rest of the application
 COPY . /var/www
@@ -44,34 +44,27 @@ RUN mkdir -p storage/app/public \
     && chmod -R 755 /var/www/storage \
     && chmod -R 755 /var/www/bootstrap/cache
 
-# Run composer dump-autoload without triggering package discovery
-RUN composer dump-autoload --optimize --no-scripts
+# Run composer dump-autoload - should work fine now
+RUN composer dump-autoload --optimize
 
-# Create a startup script
+# Create a clean startup script
 RUN echo '#!/bin/bash\n\
-# Wait a moment for environment to be ready\n\
+# Wait for environment to be ready\n\
 sleep 2\n\
-\n\
-# Clear any cached config first\n\
-php artisan config:clear || true\n\
-php artisan cache:clear || true\n\
-\n\
-# Try to install missing dependencies if needed\n\
-if [ "$APP_ENV" = "production" ]; then\n\
-    composer install --no-dev --optimize-autoloader --no-scripts || true\n\
-fi\n\
 \n\
 # Generate app key if not exists\n\
 php artisan key:generate --force || true\n\
 \n\
-# Run migrations (skip if Sanctum is causing issues)\n\
-php artisan migrate --force || echo "Migration failed, continuing..."\n\
+# Run migrations\n\
+php artisan migrate --force || true\n\
 \n\
 # Create storage link\n\
 php artisan storage:link || true\n\
 \n\
-# Skip caching if there are configuration issues\n\
-php artisan config:cache || echo "Config cache failed, running without cache"\n\
+# Cache configurations for better performance\n\
+php artisan config:cache || true\n\
+php artisan route:cache || true\n\
+php artisan view:cache || true\n\
 \n\
 # Start the server\n\
 php artisan serve --host=0.0.0.0 --port=${PORT:-8000}\n' > /var/www/start.sh
