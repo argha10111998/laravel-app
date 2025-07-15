@@ -3,29 +3,27 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
     {
         Schema::create('size', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // like "Small", "Medium", "Large"
-            $table->string('code')->nullable(); // like "S", "M", "L"
+            $table->string('name'); // Small, Medium, Large, etc.
+            $table->string('code', 10)->nullable(); // S, M, L, XL, etc.
             $table->timestamps();
         });
+        DB::table('size')->insert([
+            ['name' => 'Small', 'code' => 'S'],
+            ['name' => 'Medium', 'code' => 'M'],
+            ['name' => 'Large', 'code' => 'L'],
+            ['name' => 'Extra Large', 'code' => 'XL'],
+        ]);
+
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::dropIfExists('size');
