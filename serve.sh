@@ -2,4 +2,4 @@
 
 #initialise the script
 
-php artisan serve
+php artisan serve 

@@ -8,6 +8,9 @@
 .env.backup
 .env.production
 .phpunit.result.cache
+initialize_working.sh
+serve.sh
+
 Homestead.json
 Homestead.yaml
 auth.json
@@ -17,6 +20,3 @@ yarn-error.log
 /.idea
 /.vscode
 # Ignore REST API test files (if applicable)
-*.rest
-initialize_working.sh
-serve.sh

@@ -41,7 +41,7 @@ case "$START_HOSTING_ON_CLOUD" in
         echo "Invalid input. Please enter Y/y or N/n."
         exit 1
         ;;
-    esac
+    esac 
     ;;
 esac
 
