@@ -18,3 +18,5 @@ yarn-error.log
 /.vscode
 # Ignore REST API test files (if applicable)
 *.rest
+initialize_working.sh
+serve.sh
