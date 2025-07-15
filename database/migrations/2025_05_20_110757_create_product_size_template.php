@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('product_size', function (Blueprint $table) {
+        Schema::create('product_size_template', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained('product')->onDelete('cascade');
             $table->foreignId('size_id')->constrained('size')->onDelete('cascade');
