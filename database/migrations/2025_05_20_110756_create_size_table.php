@@ -15,8 +15,6 @@ return new class extends Migration
     {
         Schema::create('size', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // like "Small", "Medium", "Large"
-            $table->string('code')->nullable(); // like "S", "M", "L"
             $table->timestamps();
         });
     }

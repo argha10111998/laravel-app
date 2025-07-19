@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('product_size_template', function (Blueprint $table) {
+        Schema::create('product_size', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained('product')->onDelete('cascade');
             $table->foreignId('size_id')->constrained('size')->onDelete('cascade');
@@ -23,7 +23,6 @@ return new class extends Migration
             $table->timestamps();
             $table->unique(['product_id', 'size_id']); // avoids duplicate entries
         });
-
     }
 
     /**
@@ -33,6 +32,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('product_size_template');
+        Schema::dropIfExists('product_size'); // Fixed this - was 'product_size_template'
     }
 };
