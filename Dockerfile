@@ -47,12 +47,10 @@ RUN mkdir -p storage/app/public \
 # Run composer dump-autoload - should work fine now
 RUN composer dump-autoload --optimize
 
-# Create a clean startup script
+# Replace the existing RUN command for start.sh with this:
 RUN echo '#!/bin/bash\n\
-# Wait for environment to be ready\n\
 sleep 2\n\
 \n\
-# Create .env file if it does not exist\n\
 if [ ! -f .env ]; then\n\
     cp .env.example .env 2>/dev/null || echo "No .env.example found, creating basic .env"\n\
     echo "APP_NAME=Laravel" > .env\n\
@@ -61,23 +59,24 @@ if [ ! -f .env ]; then\n\
     echo "APP_URL=${APP_URL:-http://localhost}" >> .env\n\
 fi\n\
 \n\
-# Generate app key if not exists or if APP_KEY is empty\n\
-if [ -z "$APP_KEY" ]; then\n\
+# Always write Render-provided APP_KEY to .env\n\
+if [ -n "$APP_KEY" ]; then\n\
+    sed -i "s/^APP_KEY=.*/APP_KEY=$APP_KEY/" .env || echo "APP_KEY=$APP_KEY" >> .env\n\
+fi\n\
+\n\
+# Generate key only if not set\n\
+if ! grep -q "^APP_KEY=[^[:space:]]" .env; then\n\
     php artisan key:generate --force || true\n\
 fi\n\
 \n\
-# Run migrations (skip if tables already exist)\n\
 php artisan migrate --force || echo "Migration failed or tables already exist - continuing"\n\
 \n\
-# Create storage link\n\
 php artisan storage:link || true\n\
 \n\
-# Cache configurations for better performance\n\
 php artisan config:cache || true\n\
 php artisan route:cache || true\n\
 php artisan view:cache || true\n\
 \n\
-# Start the server\n\
 php artisan serve --host=0.0.0.0 --port=${PORT:-8000}\n' > /var/www/start.sh
 
 # Make startup script executable
