@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
 # Set working directory
 WORKDIR /var/www
@@ -27,11 +27,14 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy composer files first for better caching
 COPY composer.json composer.lock ./
 
+# Set environment variable to allow Composer as superuser
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 # Install dependencies - now that everything is in require, this should work clean
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 # Copy the rest of the application
-COPY . /var/www/html
+COPY . /var/www
 
 # Create necessary directories and set permissions
 RUN mkdir -p storage/app/public \
@@ -44,8 +47,8 @@ RUN mkdir -p storage/app/public \
     && chmod -R 755 /var/www/storage \
     && chmod -R 755 /var/www/bootstrap/cache
 
-# Run composer dump-autoload - should work fine now
-RUN composer dump-autoload --optimize
+# Run composer dump-autoload with superuser permission
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer dump-autoload --optimize --no-scripts
 
 # Replace the existing RUN command for start.sh with this:
 RUN echo '#!/bin/bash\n\
