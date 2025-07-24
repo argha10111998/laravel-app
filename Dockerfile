@@ -1,4 +1,4 @@
-FROM php:8.2-cli
+FROM php:8.2-apache
 
 # Set working directory
 WORKDIR /var/www
@@ -31,7 +31,7 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 # Copy the rest of the application
-COPY . /var/www
+COPY . /var/www/html
 
 # Create necessary directories and set permissions
 RUN mkdir -p storage/app/public \
